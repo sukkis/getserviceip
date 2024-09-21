@@ -43,6 +43,24 @@ pub async fn ip(req_body: web::Json<IpInfo>, data: Data<AppState>) -> impl Respo
     HttpResponse::Ok().json(ip_info)
 }
 
+#[derive(Deserialize, Serialize, Clone)]
+pub struct Host {
+    pub hostname: String,
+}
+
+#[post("/host_details")]
+pub async fn host_details(req_body: web::Json<Host>, data: Data<AppState>) -> impl Responder {
+    let hostname = req_body.hostname.to_string();
+    let mut info_vec: Vec<IpInfo> = Vec::new();
+    let my_data = data.lock().unwrap(); // Add error handling later!
+    for info in my_data.iter() {
+        if info.hostname == hostname {
+            info_vec.push(info.clone());
+        }
+    }
+    HttpResponse::Ok().json(info_vec)
+}
+
 fn verify_info(req_body: &IpInfo) -> String {
     let ipv6_valid = match req_body.ip_v6.parse::<IpAddr>() {
         Ok(v6) => v6.is_ipv6(),
@@ -70,6 +88,7 @@ pub fn run(listener: TcpListener, state: AppState) -> Result<Server, std::io::Er
             .service(health_check)
             .service(ip)
             .service(list_all)
+            .service(host_details)
     })
     .listen(listener)?
     .run();
