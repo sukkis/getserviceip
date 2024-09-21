@@ -3,7 +3,7 @@ mod common;
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
-    let address = common::spawn();
+    let (address, _) = common::spawn();
 
     // Act
     let response = reqwest::get(&format!("{}/health_check", &address))
