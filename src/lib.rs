@@ -1,15 +1,23 @@
-use actix_web::{dev::Server, get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    dev::Server,
+    get, post,
+    web::{self, Data},
+    App, HttpResponse, HttpServer, Responder,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::net::IpAddr;
 use std::net::TcpListener;
+use std::sync::{Arc, Mutex};
 
-#[derive(Deserialize, Serialize)]
-struct IpInfo {
-    hostname: String,
-    ip_v6: String,
-    ip_v4: String,
+#[derive(Deserialize, Serialize, Clone)]
+pub struct IpInfo {
+    pub hostname: String,
+    pub ip_v6: String,
+    pub ip_v4: String,
 }
+
+//type AppState = Arc<Mutex<Vec<IpInfo>>>;
 
 #[get("/health_check")]
 pub async fn health_check() -> impl Responder {
@@ -17,13 +25,19 @@ pub async fn health_check() -> impl Responder {
 }
 
 #[post("/ip")]
-pub async fn ip(req_body: web::Json<IpInfo>) -> impl Responder {
+pub async fn ip(
+    req_body: web::Json<IpInfo>,
+    data: Data<Arc<Mutex<Vec<IpInfo>>>>,
+) -> impl Responder {
     let validation_result = verify_info(&req_body);
     if validation_result != "valid" {
         return HttpResponse::BadRequest().json(json!({ "error": validation_result }));
     }
 
-    HttpResponse::Ok().json(req_body.into_inner())
+    let mut my_data = data.lock().unwrap(); // Add error handling later!
+    let ip_info = req_body.into_inner();
+    my_data.push(ip_info.clone());
+    HttpResponse::Ok().json(ip_info)
 }
 
 fn verify_info(req_body: &IpInfo) -> String {
@@ -46,10 +60,18 @@ fn verify_info(req_body: &IpInfo) -> String {
     }
 }
 
-pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    let server = HttpServer::new(|| App::new().service(health_check).service(ip))
-        .listen(listener)?
-        .run();
+pub fn run(
+    listener: TcpListener,
+    state: Arc<Mutex<Vec<IpInfo>>>,
+) -> Result<Server, std::io::Error> {
+    let server = HttpServer::new(move || {
+        App::new()
+            .app_data(Data::new(state.clone()))
+            .service(health_check)
+            .service(ip)
+    })
+    .listen(listener)?
+    .run();
 
     Ok(server)
 }
