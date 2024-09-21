@@ -24,6 +24,12 @@ pub async fn health_check() -> impl Responder {
     HttpResponse::Ok().body("OK")
 }
 
+#[get("/list_all")]
+pub async fn list_all(data: Data<AppState>) -> impl Responder {
+    let data_guard = data.lock().unwrap();
+    HttpResponse::Ok().json(&*data_guard)
+}
+
 #[post("/ip")]
 pub async fn ip(req_body: web::Json<IpInfo>, data: Data<AppState>) -> impl Responder {
     let validation_result = verify_info(&req_body);
@@ -63,6 +69,7 @@ pub fn run(listener: TcpListener, state: AppState) -> Result<Server, std::io::Er
             .app_data(Data::new(state.clone()))
             .service(health_check)
             .service(ip)
+            .service(list_all)
     })
     .listen(listener)?
     .run();
