@@ -47,13 +47,9 @@ fn verify_info(req_body: &IpInfo) -> String {
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    let server = HttpServer::new(|| {
-        App::new()
-            .service(health_check)
-            .service(ip)
-     })
-    .listen(listener)?
-    .run();
+    let server = HttpServer::new(|| App::new().service(health_check).service(ip))
+        .listen(listener)?
+        .run();
 
     Ok(server)
 }
