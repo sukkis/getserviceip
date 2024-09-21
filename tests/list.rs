@@ -55,3 +55,57 @@ async fn list_all_endpoint_works() {
     let expected_response = serde_json::json!([ip_info_1, ip_info_2]);
     assert_eq!(list_response_body, expected_response);
 }
+
+#[tokio::test]
+async fn host_details_endpoint_works() {
+    // Arrange
+    let (address, _state) = common::spawn();
+    let client = reqwest::Client::new();
+
+    let ip_info_1 = serde_json::json!({
+        "hostname": "example1.com",
+        "ip_v6": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+        "ip_v4": "192.168.0.1"
+    });
+
+    let ip_info_2 = serde_json::json!({
+        "hostname": "example2.com",
+        "ip_v6": "2001:0db8:85a3:0000:0000:8a2e:0370:7335",
+        "ip_v4": "192.168.0.2"
+    });
+
+    // Act
+    client
+        .post(format!("{}/ip", &address))
+        .json(&ip_info_1)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    client
+        .post(format!("{}/ip", &address))
+        .json(&ip_info_2)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    // Request the host_details endpoint for example1.com
+    let host_request = serde_json::json!({ "hostname": "example1.com" });
+    let host_response = client
+        .post(format!("{}/host_details", &address))
+        .json(&host_request)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    assert!(host_response.status().is_success());
+
+    let host_response_body: serde_json::Value = host_response
+        .json()
+        .await
+        .expect("Failed to parse response body.");
+
+    // Compare the results
+    let expected_response = serde_json::json!([ip_info_1]);
+    assert_eq!(host_response_body, expected_response);
+}
