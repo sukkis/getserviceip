@@ -13,7 +13,7 @@ async fn ip_endpoint_works() {
 
     // Act
     let response = client
-        .post(&format!("{}/ip", &address))
+        .post(format!("{}/ip", &address))
         .json(&ip_info)
         .send()
         .await
