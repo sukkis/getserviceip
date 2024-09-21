@@ -1,0 +1,29 @@
+[package]
+name = "getserviceip"
+version = "0.1.0"
+edition = "2021"
+authors = ["sukkis <rust.stuck095@passmail.net>"]
+description = "Web service to get IP addresses from devices."
+license = "GPL-3.0"
+keywords = ["IP", "network", "service"]
+categories = ["network-programming"]
+repository = "https://github.com/sukkis/getserviceip"
+readme = "README.md"
+include = ["src/*.rs", "tests/*.rs"]
+
+[lib]
+path="src/lib.rs"
+
+[[bin]]
+name="getip"
+path="src/bin.rs"
+
+[dependencies]
+actix-web = "4"
+tokio = { version = "1", features = ["rt", "macros"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }
+reqwest = { version = "0.11", features = ["json"] }
