@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/sukkis/getserviceip/compare/v0.1.0...v0.1.1) - 2024-09-22
+
+### Fixed
+
+- allow connections from other hosts
+
+### Other
+
+- Merge pull request [#14](https://github.com/sukkis/getserviceip/pull/14) from sukkis/allow-connections-to-server
+
 ## [0.1.0](https://github.com/sukkis/getserviceip/releases/tag/v0.1.0) - 2024-09-21
 
 ### Added
