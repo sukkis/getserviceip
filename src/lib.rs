@@ -4,13 +4,14 @@ use actix_web::{
     web::{self, Data},
     App, HttpResponse, HttpServer, Responder,
 };
+use log::{info, trace, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::net::IpAddr;
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct IpInfo {
     pub hostname: String,
     pub ip_v6: String,
@@ -21,25 +22,33 @@ type AppState = Arc<Mutex<Vec<IpInfo>>>;
 
 #[get("/health_check")]
 pub async fn health_check() -> impl Responder {
+    trace!("Client reached /health_check endpoint.");
     HttpResponse::Ok().body("OK")
 }
 
 #[get("/list_all")]
 pub async fn list_all(data: Data<AppState>) -> impl Responder {
+    trace!("Client reached /list_all endpoint.");
     let data_guard = data.lock().unwrap();
     HttpResponse::Ok().json(&*data_guard)
 }
 
 #[post("/ip")]
 pub async fn ip(req_body: web::Json<IpInfo>, data: Data<AppState>) -> impl Responder {
+    trace!("Client reached /ip endpoint.");
     let validation_result = verify_info(&req_body);
     if validation_result != "valid" {
+        warn!(
+            "IP information provided is not valid, {}",
+            validation_result
+        );
         return HttpResponse::BadRequest().json(json!({ "error": validation_result }));
     }
 
     let mut my_data = data.lock().unwrap(); // Add error handling later!
     let ip_info = req_body.into_inner();
     my_data.push(ip_info.clone());
+    info!("IP info saved: {:?}", &ip_info);
     HttpResponse::Ok().json(ip_info)
 }
 
@@ -50,6 +59,7 @@ pub struct Host {
 
 #[post("/host_details")]
 pub async fn host_details(req_body: web::Json<Host>, data: Data<AppState>) -> impl Responder {
+    trace!("Client reached /health_check endpoint.");
     let hostname = req_body.hostname.to_string();
     let mut info_vec: Vec<IpInfo> = Vec::new();
     let my_data = data.lock().unwrap(); // Add error handling later!
@@ -82,6 +92,7 @@ fn verify_info(req_body: &IpInfo) -> String {
 }
 
 pub fn run(listener: TcpListener, state: AppState) -> Result<Server, std::io::Error> {
+    trace!("Run function setting up server.");
     let server = HttpServer::new(move || {
         App::new()
             .app_data(Data::new(state.clone()))
