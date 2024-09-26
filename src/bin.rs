@@ -1,7 +1,7 @@
 use getserviceip::{run, IpInfo};
+use log::{info, trace, LevelFilter};
 use std::net::TcpListener; // Adjust the path to your lib.rs module
 use std::sync::{Arc, Mutex};
-use log::{trace, info, LevelFilter};
 use systemd_journal_logger::JournalLog;
 
 #[actix_web::main]

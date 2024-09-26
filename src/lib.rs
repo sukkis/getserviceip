@@ -4,13 +4,12 @@ use actix_web::{
     web::{self, Data},
     App, HttpResponse, HttpServer, Responder,
 };
+use log::{info, trace, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::net::IpAddr;
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
-use log::{trace, info, warn};
-
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct IpInfo {
@@ -39,7 +38,10 @@ pub async fn ip(req_body: web::Json<IpInfo>, data: Data<AppState>) -> impl Respo
     trace!("Client reached /ip endpoint.");
     let validation_result = verify_info(&req_body);
     if validation_result != "valid" {
-	warn!("IP information provided is not valid, {}", validation_result);
+        warn!(
+            "IP information provided is not valid, {}",
+            validation_result
+        );
         return HttpResponse::BadRequest().json(json!({ "error": validation_result }));
     }
 
