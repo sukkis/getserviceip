@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/sukkis/getserviceip/compare/v0.1.1...v0.1.2) - 2024-09-26
+
+### Added
+
+- enable basic logs, accessible through journalctl
+
+### Fixed
+
+- format changes
+
+### Other
+
+- Merge pull request [#15](https://github.com/sukkis/getserviceip/pull/15) from sukkis/enable-logging
+
 ## [0.1.1](https://github.com/sukkis/getserviceip/compare/v0.1.0...v0.1.1) - 2024-09-22
 
 ### Fixed
